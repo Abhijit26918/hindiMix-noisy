@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data (large files — use Git LFS or DVC instead)
+data/raw/*.csv
+data/raw/*.json
+data/raw/*.txt
+data/raw/*.zip
+data/raw/*.tar.gz
+
+# But track small samples and metadata
+!data/raw/sample_*.csv
+!data/raw/*.md
+
+# Model checkpoints (large)
+models/**/*.bin
+models/**/*.pt
+models/**/*.ckpt
+models/**/*.safetensors
+!models/**/config.json
+!models/**/tokenizer*.json
+
+# Logs & outputs
+logs/
+*.log
+wandb/
+runs/
+
+# Environment
+.env
+*.env
+secrets.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Results — track these
+!results/

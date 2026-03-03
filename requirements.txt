@@ -1,0 +1,52 @@
+# ── Core ──────────────────────────────────────────────
+pandas==2.1.4
+numpy==1.26.4
+scikit-learn==1.3.2
+scipy==1.11.4
+
+# ── Deep Learning ─────────────────────────────────────
+# Install PyTorch separately with correct CUDA version:
+# College GPU:  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# Colab:        pre-installed
+# CPU only:     pip install torch torchvision torchaudio
+
+# ── NLP / Transformers ────────────────────────────────
+transformers==4.36.2
+datasets==2.16.1
+tokenizers==0.15.0
+sentencepiece==0.1.99
+accelerate==0.25.0
+evaluate==0.4.1
+seqeval==1.2.2
+
+# ── Language-specific ─────────────────────────────────
+indic-nlp-library==0.91
+langdetect==1.0.9
+polyglot==16.7.4
+
+# ── ASR ───────────────────────────────────────────────
+openai-whisper==20231117
+soundfile==0.12.1
+librosa==0.10.1
+pydub==0.25.1
+
+# ── Phonetic ──────────────────────────────────────────
+phonetics==1.0.5
+jellyfish==1.0.3
+editdistance==0.8.1
+
+# ── Experiment Tracking ───────────────────────────────
+wandb==0.16.1
+
+# ── Visualization ─────────────────────────────────────
+matplotlib==3.8.2
+seaborn==0.13.0
+plotly==5.18.0
+
+# ── Utilities ─────────────────────────────────────────
+tqdm==4.66.1
+jupyter==1.0.0
+ipykernel==6.28.0
+python-dotenv==1.0.0
+requests==2.31.0
+beautifulsoup4==4.12.2
