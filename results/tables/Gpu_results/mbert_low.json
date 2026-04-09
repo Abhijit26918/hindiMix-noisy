@@ -1,0 +1,8 @@
+{
+  "model": "mbert",
+  "noise": "low",
+  "test_f1": 0.839,
+  "val_f1": 0.8443,
+  "epochs": 3,
+  "lr": 0.001
+}

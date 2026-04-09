@@ -1,0 +1,8 @@
+{
+  "model": "muril",
+  "noise": "medium",
+  "test_f1": 0.8312,
+  "val_f1": 0.8463,
+  "epochs": 3,
+  "lr": 0.001
+}

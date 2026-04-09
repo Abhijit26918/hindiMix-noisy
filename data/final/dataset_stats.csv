@@ -1,0 +1,7 @@
+,0
+total_clean,112542
+train_size,123631
+val_size,16882
+test_size,16882
+hate_ratio_train,0.262248142
+hate_ratio_test,0.375844094

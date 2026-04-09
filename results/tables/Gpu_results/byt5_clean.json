@@ -1,0 +1,8 @@
+{
+  "model": "byt5",
+  "noise_level": "clean",
+  "best_val_f1": 0.8488,
+  "test_f1_macro": null,
+  "epochs": 3,
+  "lr": 0.001
+}

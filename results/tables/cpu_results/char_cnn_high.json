@@ -1,0 +1,8 @@
+{
+  "model": "CharCNN",
+  "noise_level": "high",
+  "best_val_f1": 0.8099,
+  "test_f1_macro": 0.7911,
+  "epochs": 10,
+  "lr": 0.001
+}

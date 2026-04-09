@@ -1,116 +1,153 @@
-# Compressed Timeline: March 3 → April 25, 2026
+# HindiMix-Noisy: Revised Timeline (Apr 6 → Apr 25, 2026)
 
-**53 days. No days off. Publication target.**
-
----
-
-## PHASE 1: Dataset Creation (Mar 3 – Mar 16, 14 days)
-
-| Day | Date | Task | Script/File |
-|-----|------|------|-------------|
-| 1 | Mar 3 | Project setup, git, conda env | ✅ Done |
-| 2 | Mar 4 | Download HASOC 2019/2020/2021 datasets | `01_download_datasets.py` |
-| 3 | Mar 5 | Download SemEval, Davidson, explore & merge | `02_explore_and_merge.py` |
-| 4 | Mar 6 | Clean & normalize merged dataset | `02_explore_and_merge.py` |
-| 5 | Mar 7 | Implement noise injection (char, word, phonetic) | `03_add_noise.py` |
-| 6 | Mar 8 | Generate 3-level noisy versions (low/med/high) | `03_add_noise.py` |
-| 7 | Mar 9 | Create train/val/test splits | `04_create_splits.py` |
-| 8 | Mar 10 | Dataset EDA notebook (plots, stats) | `notebooks/phase1/EDA.ipynb` |
-| 9 | Mar 11 | Real ASR transcriptions via Whisper (500 samples) | `05_whisper_transcribe.py` |
-| 10 | Mar 12 | Error taxonomy annotation (500 samples) | `notebooks/phase1/error_taxonomy.ipynb` |
-| 11 | Mar 13 | Dataset validation & quality checks | `06_validate_dataset.py` |
-| 12 | Mar 14 | Write Phase 1 handoff document | `docs/phase1_handoff.md` |
-| 13 | Mar 15 | Buffer / catch-up / fix issues | — |
-| 14 | Mar 16 | Push complete Phase 1 to GitHub ✅ | `daily_push.sh` |
-
-**Phase 1 Deliverable:** `data/final/` with 10K+ clean + 30K noisy samples
+**19 days remaining. GPU access: Apr 10-13 (RTX 4000). Deadline: Apr 25.**
 
 ---
 
-## PHASE 2: Baseline Experiments (Mar 17 – Mar 30, 14 days)
+## CURRENT STATUS (Apr 6)
 
-| Day | Date | Task | Script/File |
-|-----|------|------|-------------|
-| 15 | Mar 17 | Classical baselines: TF-IDF + SVM/LR | `models/baselines/classical.py` |
-| 16 | Mar 18 | Fine-tune MuRIL (Google's multilingual BERT for Indian langs) | `models/baselines/muril_trainer.py` |
-| 17 | Mar 19 | Fine-tune XLM-R | `models/baselines/xlmr_trainer.py` |
-| 18 | Mar 20 | Fine-tune mBERT | `models/baselines/mbert_trainer.py` |
-| 19 | Mar 21 | Character-level CNN baseline | `models/baselines/char_cnn.py` |
-| 20 | Mar 22 | Evaluate all baselines on clean test | `scripts/evaluation/evaluate.py` |
-| 21 | Mar 23 | Evaluate all baselines on noisy test sets | `scripts/evaluation/evaluate_noisy.py` |
-| 22 | Mar 24 | Robustness analysis (degradation curves) | `notebooks/phase2/robustness_analysis.ipynb` |
-| 23 | Mar 25 | Error categorization (which errors hurt most?) | `notebooks/phase2/error_analysis.ipynb` |
-| 24 | Mar 26 | Generate all result tables (CSV) | `results/tables/` |
-| 25 | Mar 27 | Generate all figures (degradation plots) | `results/figures/` |
-| 26 | Mar 28 | Write Phase 2 handoff + results chapter draft | `docs/phase2_handoff.md` |
-| 27 | Mar 29 | Buffer / re-runs if needed | — |
-| 28 | Mar 30 | Push complete Phase 2 to GitHub ✅ | `daily_push.sh` |
-
-**Phase 2 Deliverable:** Baseline F1 scores on all noise levels, robustness analysis
+| Component | Status |
+|---|---|
+| Data pipeline (scripts 01-04) | DONE |
+| Dataset: 112,542 samples, 21,450 hi-en | DONE |
+| HASOC 2021 parsed (2,819 labeled Hinglish) | DONE |
+| TF-IDF SVM/LR (all noise levels) | DONE — `results/tables/cpu_results/` |
+| CharCNN (all noise levels) | DONE — `results/tables/cpu_results/` |
+| mBERT (all noise levels) | DONE — `results/tables/Gpu_results/` |
+| XLM-R (all noise levels) | RUNNING — Kaggle |
+| MuRIL (all noise levels) | RUNNING — Kaggle |
+| ByT5 standard (all noise levels) | RUNNING — Kaggle (second account) |
+| NoiseBridge (PWNIC + GRL) | CODED — ready to train Thu |
 
 ---
 
-## PHASE 3: Proposed Solution (Mar 31 – Apr 15, 16 days)
+## ARCHITECTURE: NoiseBridge
 
-| Day | Date | Task | Script/File |
-|-----|------|------|-------------|
-| 29 | Mar 31 | Design NoiseRobust-HateDetect architecture | `models/proposed/architecture.md` |
-| 30 | Apr 1 | Implement ByT5 backbone + classification head | `models/proposed/noise_robust_model.py` |
-| 31 | Apr 2 | Implement phonetic feature extractor | `models/proposed/phonetic_features.py` |
-| 32 | Apr 3 | Implement noise-augmented training loop | `models/proposed/trainer.py` |
-| 33 | Apr 4 | Train on college GPU (initial run) | `models/proposed/train.py` |
-| 34 | Apr 5 | Evaluate vs baselines | `scripts/evaluation/compare_all.py` |
-| 35 | Apr 6 | Hyperparameter tuning (LR, batch size, aug ratio) | Colab runs |
-| 36 | Apr 7 | Ablation study: remove each component one-by-one | `notebooks/phase3/ablation.ipynb` |
-| 37 | Apr 8 | Real ASR test set evaluation | `scripts/evaluation/eval_real_asr.py` |
-| 38 | Apr 9 | Statistical significance tests (paired t-test) | `notebooks/phase3/significance_tests.ipynb` |
-| 39 | Apr 10 | Final result tables + figures for paper | `results/` |
-| 40 | Apr 11 | Error case study (where does our model still fail?) | `notebooks/phase3/error_cases.ipynb` |
-| 41 | Apr 12 | Buffer / improvements | — |
-| 42 | Apr 13 | Push Phase 3 code + results to GitHub ✅ | `daily_push.sh` |
-| 43 | Apr 14 | Write model card / HuggingFace upload | — |
-| 44 | Apr 15 | Code cleanup, documentation | — |
+**Files:** `models/proposed/noisebridge.py` + `models/proposed/train_noisebridge.py`
 
-**Phase 3 Deliverable:** NoiseRobust-HateDetect model, +8-12% F1 over best baseline
+**4 components working together:**
+1. ByT5 byte-level encoder — no OOV problem on noisy Hinglish
+2. Noise-Aware Attention gate — learned token-level weighting
+3. PWNIC loss — Phonetic-Weighted Noise-Invariant Contrastive (novel)
+4. Gradient Reversal Layer — adversarial noise disentanglement (novel application)
 
----
+**Full loss:**
+```
+L_total = L_CE + 0.5*L_PWNIC - 0.3*L_adv + 0.1*L_aux
+```
 
-## WRITING PHASE (Apr 16 – Apr 25, 10 days)
+**PWNIC (mathematical novelty):**
+```
+L_PWNIC = -sum_i phi_i * log[exp(sim(z_c_i, z_n_i)/t) / sum_k exp(sim(z_c_i, z_k)/t)]
+phi_i = 1 - JaroWinkler(x_clean_i, x_noisy_i)  in [0,1]
+```
+Standard InfoNCE weighted by phonetic dissimilarity. Pushes harder when noisy version
+sounds more different. First use of phonetic weighting in contrastive NLP.
 
-| Day | Date | Task |
-|-----|------|------|
-| 45 | Apr 16 | Write Abstract + Introduction (paper) |
-| 46 | Apr 17 | Write Related Work section |
-| 47 | Apr 18 | Write Dataset section (Phase 1) |
-| 48 | Apr 19 | Write Experiments section (Phase 2 + 3) |
-| 49 | Apr 20 | Write Results + Analysis section |
-| 50 | Apr 21 | Write Conclusion + Future Work |
-| 51 | Apr 22 | Thesis: Chapters 1-3 (Intro, Literature, Dataset) |
-| 52 | Apr 23 | Thesis: Chapters 4-5 (Experiments, Results) |
-| 53 | Apr 24 | Final proofreading + formatting (both paper + thesis) |
-| —  | Apr 25 | **SUBMISSION DEADLINE** ✅ |
+**GRL (novel application to noise):**
+- Forward: identity
+- Backward: multiply gradient by -lambda (reversal)
+- Lambda annealed via DANN schedule: lambda(p) = 2/(1+exp(-10p)) - 1
+- Forces encoder to make representation UNINFORMATIVE w.r.t. noise level
+- Result: hate semantics preserved, noise characteristics removed from feature space
 
 ---
 
-## Target Venues for Paper
+## REMAINING WORK
 
-| Venue | Deadline | Type |
-|-------|----------|------|
-| ACL 2026 (findings) | ~Feb 2026 (missed) | Top tier |
-| EMNLP 2026 | ~May 2026 | **Target** |
-| COLING 2026 | ~Apr 2026 | **Target** |
-| ICON 2026 (Indian) | ~Aug 2026 | Backup |
+### Apr 6 — Tonight
+- [ ] Wait for Kaggle: XLM-R, MuRIL, ByT5 standard results
+- [ ] Download result JSONs to `results/tables/Gpu_results/`
 
-**Primary target: EMNLP 2026** — deadline likely around May-June 2026. Your timeline fits perfectly.
+### Apr 7 (Wed)
+- [ ] NoiseBridge + XLM-R backbone on Kaggle:
+  `python models/proposed/train_noisebridge.py --encoder xlm-roberta-base --noise all --fp16`
+- [ ] NoiseBridge + mBERT backbone on Kaggle:
+  `python models/proposed/train_noisebridge.py --encoder bert-base-multilingual-cased --noise all --fp16`
+
+### Apr 8 (Thu) — RTX 4000
+- [ ] Setup: conda env + torch cu121 + transformers + jellyfish
+- [ ] Train NoiseBridge + ByT5 (MAIN CLAIM):
+  `python models/proposed/train_noisebridge.py --encoder google/byt5-small --noise all --fp16 --batch_size 4`
+- [ ] Train NoiseBridge + MuRIL:
+  `python models/proposed/train_noisebridge.py --encoder google/muril-base-cased --noise all --fp16 --batch_size 16`
+
+### Apr 9 (Fri)
+- [ ] Collect all results
+- [ ] Generate master results table
+- [ ] Run ablation study (remove GRL / remove PWNIC / remove both)
+
+### Apr 10-11 (Sat-Sun)
+- [ ] Paper writing: Abstract, Introduction, Dataset, Model sections
+- [ ] Generate all figures: degradation curves, ablation bars
+
+### Apr 12-13 (Mon-Tue)
+- [ ] Paper writing: Results, Analysis, Related Work, Conclusion
+
+### Apr 14-18
+- [ ] Full paper draft, proofread, format (EMNLP/COLING style)
+
+### Apr 19-24
+- [ ] BTP thesis (5 chapters from paper sections)
+
+### Apr 25 — DEADLINE
 
 ---
 
-## Key Success Metrics
+## MODELS CHECKLIST
 
-| Metric | Target |
-|--------|--------|
-| Clean test F1 | > 80% |
-| Medium noise F1 (best baseline) | ~65-70% |
-| Medium noise F1 (our model) | > 78% |
-| Improvement over baseline | +8-12% F1 |
-| Statistical significance | p < 0.05 |
+| Model | Backbone | Status | Where |
+|---|---|---|---|
+| TF-IDF SVM | — | DONE | cpu_results/ |
+| TF-IDF LR | — | DONE | cpu_results/ |
+| CharCNN | — | DONE | cpu_results/ |
+| mBERT standard | mBERT | DONE | Gpu_results/ |
+| XLM-R standard | XLM-R | Running | Kaggle |
+| MuRIL standard | MuRIL | Running | Kaggle |
+| ByT5 standard | ByT5 | Running | Kaggle |
+| NoiseBridge | mBERT | Todo Wed | Kaggle |
+| NoiseBridge | XLM-R | Todo Wed | Kaggle |
+| NoiseBridge | MuRIL | Todo Thu | RTX 4000 |
+| NoiseBridge | ByT5 | Todo Thu | RTX 4000 |
+
+---
+
+## PAPER STORY (3 contributions)
+
+1. **HindiMix-Noisy benchmark** — first systematic ASR-noise evaluation for Hinglish hate speech
+   (6 models x 4 noise levels, publicly released)
+
+2. **PWNIC loss** — phonetically-grounded variable-pressure contrastive objective.
+   Novel: phonetic dissimilarity as contrastive weight. Not done before in NLP.
+
+3. **NoiseBridge** — PWNIC (output space) + GRL disentanglement (feature space).
+   Attacks noise robustness at two levels simultaneously.
+
+Target result: NoiseBridge reduces degradation (clean F1 - high F1) by X% vs best baseline.
+
+---
+
+## TARGET VENUES
+
+| Venue | Deadline | Fit |
+|---|---|---|
+| EMNLP 2026 | ~May 2026 | Primary |
+| COLING 2026 | ~Apr 2026 | Primary |
+| ICON 2026 | ~Aug 2026 | Safe backup |
+
+---
+
+## KEY FILES
+
+| File | Purpose |
+|---|---|
+| `models/proposed/noisebridge.py` | NoiseBridge model + PWNIC loss + GRL |
+| `models/proposed/train_noisebridge.py` | Full trainer (all encoders + noise levels) |
+| `models/proposed/train_proposed.py` | ByT5 standard baseline trainer |
+| `models/proposed/noise_robust_model.py` | Earlier ByT5 architecture (superseded) |
+| `notebooks/phase2/byt5_kaggle_all_levels.ipynb` | Kaggle: ByT5 standard |
+| `notebooks/phase2/gpu_baselines_colab.ipynb` | Kaggle/Colab: mBERT/XLM-R/MuRIL |
+| `notebooks/phase2/charcnn_medium_high.ipynb` | Friend's notebook: CharCNN med+high |
+| `data/final/` | All 7 split CSVs (train/val/test x4 noise) |
+| `results/tables/cpu_results/` | TF-IDF SVM/LR + CharCNN results |
+| `results/tables/Gpu_results/` | mBERT + GPU model results |

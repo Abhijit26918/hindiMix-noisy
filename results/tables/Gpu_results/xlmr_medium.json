@@ -1,0 +1,8 @@
+{
+  "model": "xlmr",
+  "noise": "medium",
+  "test_f1": 0.8396,
+  "val_f1": 0.847,
+  "epochs": 3,
+  "lr": 0.001
+}

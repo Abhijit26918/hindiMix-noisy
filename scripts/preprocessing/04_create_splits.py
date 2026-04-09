@@ -30,15 +30,20 @@ TEST_RATIO = 0.15
 
 
 def create_splits():
-    # Load clean data
-    clean_path = os.path.join(PROC_DIR, "codemixed_clean.csv")
+    # Load merged_clean.csv for train/val/test splits.
+    # Reason: codemixed_clean.csv has no hate labels (SemEval is sentiment only).
+    # merged_clean.csv has balanced labels from Davidson + TweetEval + UCB + OLID.
+    # Noisy test sets use codemixed (Hinglish) data for cross-lingual robustness eval.
+    clean_path = os.path.join(PROC_DIR, "merged_clean.csv")
     if not os.path.exists(clean_path):
-        clean_path = os.path.join(PROC_DIR, "merged_clean.csv")
-    if not os.path.exists(clean_path):
-        print("[ERROR] No processed data. Run scripts 01-03 first.")
+        print("[ERROR] merged_clean.csv not found. Run scripts 01-02 first.")
         return
 
     df = pd.read_csv(clean_path)
+
+    if len(df) == 0:
+        print("[ERROR] merged_clean.csv is empty.")
+        return
     print(f"[INFO] Total clean samples: {len(df)}")
     print(f"  Label distribution: {Counter(df['label'])}")
 
@@ -49,38 +54,54 @@ def create_splits():
     print(f"\n[INFO] Split sizes:")
     print(f"  Train: {len(train)} | Val: {len(val)} | Test: {len(test)}")
 
-    # Add noise_level column
+    # Reset index for clean joins
+    train = train.reset_index(drop=True)
+    val   = val.reset_index(drop=True)
+    test  = test.reset_index(drop=True)
     train["noise_level"] = "clean"
-    val["noise_level"] = "clean"
-    test["noise_level"] = "clean"
+    val["noise_level"]   = "clean"
+    test["noise_level"]  = "clean"
 
-    # For train: also include ALL noisy versions (data augmentation)
+    # For train: augment with noisy versions of train texts (from merged data)
+    train_texts = set(train["text"])
     noisy_parts = [train]
     for level in ["low", "medium", "high"]:
         noisy_path = f"{NOISY_DIR}/{level}/noisy_{level}.csv"
         if os.path.exists(noisy_path):
             noisy_df = pd.read_csv(noisy_path)
-            # Only include rows that are in train (by index)
-            train_indices = train.index
-            noisy_train = noisy_df.loc[noisy_df.index.isin(train_indices)].copy()
+            if "text_original" in noisy_df.columns:
+                noisy_train = noisy_df[noisy_df["text_original"].isin(train_texts)].copy()
+            else:
+                noisy_train = noisy_df.copy()
             noisy_train["noise_level"] = level
             noisy_parts.append(noisy_train)
+            print(f"  Added {len(noisy_train):,} {level}-noise augmentation samples")
 
     train_full = pd.concat(noisy_parts, ignore_index=True).sample(frac=1, random_state=SEED)
 
-    # Save splits
+    # Save main splits
     train_full.to_csv(f"{FINAL_DIR}/train.csv", index=False)
     val.to_csv(f"{FINAL_DIR}/val.csv", index=False)
     test.to_csv(f"{FINAL_DIR}/test_clean.csv", index=False)
 
-    # Save noisy test sets (same test rows, but noisy)
+    # Noisy test sets — apply noise directly to test_clean (balanced labels)
+    # This gives proper evaluation: same texts, same labels, just with ASR noise added
+    import sys, importlib.util
+    spec = importlib.util.spec_from_file_location("noise_module", "scripts/noise_generation/03_add_noise.py")
+    noise_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(noise_module)
+    add_noise = noise_module.add_noise
+
+    print(f"\n[INFO] Generating noisy test sets from test_clean ({len(test):,} rows)...")
     for level in ["low", "medium", "high"]:
-        noisy_path = f"{NOISY_DIR}/{level}/noisy_{level}.csv"
-        if os.path.exists(noisy_path):
-            noisy_df = pd.read_csv(noisy_path)
-            noisy_test = noisy_df.loc[noisy_df.index.isin(test.index)].copy()
-            noisy_test.to_csv(f"{FINAL_DIR}/test_noisy_{level}.csv", index=False)
-            print(f"  test_noisy_{level}.csv: {len(noisy_test)} samples")
+        noisy_texts = [add_noise(str(t), level) for t in test["text"]]
+        noisy_test = test.copy()
+        noisy_test["text_original"] = test["text"]
+        noisy_test["text"] = noisy_texts
+        noisy_test["noise_level"] = level
+        noisy_test.to_csv(f"{FINAL_DIR}/test_noisy_{level}.csv", index=False)
+        labels = dict(Counter(noisy_test["label"].astype(int)))
+        print(f"  test_noisy_{level}.csv: {len(noisy_test):,} samples | labels: {labels}")
 
     print(f"\n[INFO] All splits saved to {FINAL_DIR}/")
     print(f"  train.csv: {len(train_full)} rows (clean + augmented noisy)")

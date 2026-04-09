@@ -12,16 +12,19 @@ Architecture components:
 Full loss (4 terms, each mathematically motivated):
 
   L_total = L_CE
-          + α · L_PWNIC       (output space: pushes clean≈noisy embeddings)
+          + α · L_PWNIC       (projection space: pushes clean≈noisy embeddings)
           - β · L_adv         (feature space: forces encoder to REMOVE noise info)
-          + γ · L_aux         (multi-task: separate branch, teaches noise awareness)
+          + γ · L_aux         (multi-task: predicts noise level from noisy repr)
 
   Note the MINUS on L_adv: encoder MAXIMIZES adversarial loss (minimax game).
   This is representation disentanglement via gradient reversal.
 
+  PWNIC operates on a separate projection head (not the classifier embedding)
+  so contrastive and classification objectives do not compete in the same space.
+
 PWNIC loss (novel):
   Standard InfoNCE weighted by phonetic dissimilarity φ ∈ [0,1]:
-  L_PWNIC = -Σᵢ φᵢ · log[exp(sim(zᵢ_c,zᵢ_n)/τ) / Σₖ exp(sim(zᵢ_c,zₖ)/τ)]
+  L_PWNIC = -Σᵢ φᵢ · log[exp(sim(pᵢ_c,pᵢ_n)/τ) / Σₖ exp(sim(pᵢ_c,pₖ)/τ)]
   where φᵢ = 1 - JaroWinkler(x_clean_i, x_noisy_i)
   → pushes HARDER when noisy version sounds more different
 
@@ -136,7 +139,7 @@ class PWNICLoss(nn.Module):
     L = -Σᵢ φᵢ · log[exp(sim(zᵢ_c,zᵢ_n)/τ) / Σₖ exp(sim(zᵢ_c,zₖ)/τ)]
     """
 
-    def __init__(self, temperature: float = 0.07):
+    def __init__(self, temperature: float = 0.15):
         super().__init__()
         self.temperature = temperature
 
@@ -205,7 +208,7 @@ class NoiseBridge(nn.Module):
 
     Parameters:
       encoder_name : HuggingFace model (default: google/byt5-small)
-      alpha        : PWNIC weight      (default: 0.5)
+      alpha        : PWNIC weight      (default: 0.15)
       beta         : adversarial weight (default: 0.3)
       gamma        : auxiliary weight  (default: 0.1)
       lambda_max   : GRL max reversal  (default: 1.0)
@@ -219,8 +222,8 @@ class NoiseBridge(nn.Module):
         num_labels:       int   = 2,
         num_noise_levels: int   = 4,
         dropout:          float = 0.1,
-        temperature:      float = 0.07,
-        alpha:            float = 0.5,
+        temperature:      float = 0.15,
+        alpha:            float = 0.15,
         beta:             float = 0.3,
         gamma:            float = 0.1,
         lambda_max:       float = 1.0,
@@ -253,6 +256,16 @@ class NoiseBridge(nn.Module):
             nn.Linear(256, num_labels),
         )
 
+        # Projection head for PWNIC contrastive loss only.
+        # Separate from the classifier so contrastive and classification
+        # objectives do not compete in the same representation space.
+        # Following SimCLR: encoder z → proj_head → p (used only for PWNIC).
+        self.proj_head = nn.Sequential(
+            nn.Linear(self.hidden_size, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+        )
+
         # Adversarial noise level predictor (receives GRL-reversed features)
         # Tries to predict noise level → encoder fights back via GRL
         self.adv_noise_predictor = nn.Sequential(
@@ -262,8 +275,8 @@ class NoiseBridge(nn.Module):
             nn.Linear(128, num_noise_levels),
         )
 
-        # Auxiliary noise level predictor (separate branch, NO reversal)
-        # Positively trains a separate head to be noise-aware
+        # Auxiliary noise level predictor (separate branch, NO reversal).
+        # Applied to z_noisy so labels match what was actually corrupted.
         self.aux_noise_predictor = nn.Sequential(
             nn.Linear(self.hidden_size, 64),
             nn.ReLU(),
@@ -312,9 +325,13 @@ class NoiseBridge(nn.Module):
             # ── 3. Encode noisy ──────────────────────────────────
             z_noisy = self.encode(noisy_input_ids, noisy_attention_mask)
 
-            # ── 4. PWNIC loss ────────────────────────────────────
+            # ── 4. PWNIC loss (projection space, not classifier space) ──
+            # Project both embeddings before contrastive loss so the
+            # classifier representation is not pulled by the contrastive obj.
             if phi is not None:
-                loss_pwnic = self.pwnic(z_clean, z_noisy, phi)
+                p_clean    = self.proj_head(z_clean)
+                p_noisy    = self.proj_head(z_noisy)
+                loss_pwnic = self.pwnic(p_clean, p_noisy, phi)
                 total_loss = total_loss + self.alpha * loss_pwnic
 
             # ── 5. Adversarial disentanglement via GRL ───────────
@@ -327,11 +344,10 @@ class NoiseBridge(nn.Module):
                 total_loss   = total_loss + self.beta * loss_adv
 
             # ── 6. Auxiliary noise prediction (separate branch) ──
-            # Separate from adversarial — positively trains noise awareness
-            # on the CLEAN encoding (encoder learns to implicitly represent
-            # how corrupted something is, from clean text alone)
+            # Applied to z_noisy — labels reflect what noise level was applied,
+            # so z_noisy is the right input (clean text carries no noise signal).
             if noise_level_labels is not None:
-                aux_logits = self.aux_noise_predictor(z_clean)
+                aux_logits = self.aux_noise_predictor(z_noisy)
                 loss_aux   = F.cross_entropy(aux_logits, noise_level_labels)
                 total_loss = total_loss + self.gamma * loss_aux
 

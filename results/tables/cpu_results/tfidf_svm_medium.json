@@ -1,0 +1,6 @@
+{
+  "model": "tfidf_svm",
+  "noise_level": "medium",
+  "val_f1_macro": 0.7982,
+  "test_f1_macro": 0.7896
+}

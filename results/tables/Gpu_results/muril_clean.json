@@ -1,0 +1,6 @@
+{
+  "model": "muril",
+  "noise": "clean",
+  "test_f1": 0.8389,
+  "val_f1": 0.8451
+}

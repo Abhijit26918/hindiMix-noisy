@@ -196,6 +196,20 @@ def generate_noisy_versions(input_file="data/processed/codemixed_clean.csv"):
         return
 
     df = pd.read_csv(input_file)
+
+    # If codemixed is empty, fall back to full merged dataset
+    if len(df) == 0:
+        print(f"[WARN] {input_file} is empty — falling back to data/processed/merged_clean.csv")
+        input_file = "data/processed/merged_clean.csv"
+        if not os.path.exists(input_file):
+            print("[ERROR] merged_clean.csv not found either. Run scripts 01 and 02 first.")
+            return
+        df = pd.read_csv(input_file)
+
+    if len(df) == 0:
+        print("[ERROR] No data to process. Check data/processed/")
+        return
+
     print(f"[INFO] Loaded {len(df)} samples from {input_file}")
 
     # Generate 3x noisy versions per sample (each at different level)
@@ -217,9 +231,9 @@ def generate_noisy_versions(input_file="data/processed/codemixed_clean.csv"):
     # Quick sanity check
     print("\n[INFO] Sample comparison (original vs noisy):")
     sample = df["text"].iloc[0]
-    print(f"  Original: {sample}")
+    print(f"  Original : {sample}")
     for level in ["low", "medium", "high"]:
-        print(f"  {level:8s}: {add_noise(sample, level)}")
+        print(f"  {level:8s} : {add_noise(sample, level)}")
 
     print("\n[INFO] Next: Run scripts/preprocessing/04_create_splits.py")
 
