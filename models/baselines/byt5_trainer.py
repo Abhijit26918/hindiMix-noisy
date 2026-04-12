@@ -1,11 +1,12 @@
 """
 ByT5 Baseline Trainer for Hate Speech Detection.
 
-ByT5-small: byte-level T5, no tokenizer OOV — ideal for noisy Hinglish.
-Uses T5ForSequenceClassification with gradient checkpointing for memory efficiency.
+Uses T5EncoderModel (encoder-only) + masked mean pooling + weighted CE loss.
+T5ForSequenceClassification is wrong for this task — it uses encoder+decoder
+which adds noise and hurts classification performance.
 
-Run: python models/baselines/byt5_trainer.py --noise_level clean
-     python models/baselines/byt5_trainer.py --noise_level all --fp16
+Run: python models/baselines/byt5_trainer.py --noise_level clean --fp16
+     python models/baselines/byt5_trainer.py --noise_level all  --fp16
 """
 
 import os
@@ -13,14 +14,11 @@ import argparse
 import json
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
-from transformers import (
-    AutoTokenizer,
-    T5ForSequenceClassification,
-    get_linear_schedule_with_warmup,
-)
+from transformers import AutoTokenizer, T5EncoderModel, get_linear_schedule_with_warmup
 from torch.optim import AdamW
 from sklearn.metrics import f1_score, classification_report
 from sklearn.utils.class_weight import compute_class_weight
@@ -35,6 +33,27 @@ os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
+# ── Model ────────────────────────────────────────────────────────────────────
+
+class ByT5Classifier(nn.Module):
+    """Encoder-only ByT5 with masked mean pooling. No decoder."""
+    def __init__(self, num_labels=2, dropout=0.1):
+        super().__init__()
+        self.encoder    = T5EncoderModel.from_pretrained(MODEL_NAME)
+        d_model         = self.encoder.config.d_model   # 1472 for byt5-small
+        self.dropout    = nn.Dropout(dropout)
+        self.classifier = nn.Linear(d_model, num_labels)
+
+    def forward(self, input_ids, attention_mask):
+        enc    = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
+        hidden = enc.last_hidden_state                          # (B, L, d_model)
+        mask   = attention_mask.unsqueeze(-1).float()
+        pooled = (hidden * mask).sum(1) / mask.sum(1).clamp(min=1e-9)  # masked mean
+        return self.classifier(self.dropout(pooled))            # (B, num_labels)
+
+
+# ── Dataset ───────────────────────────────────────────────────────────────────
 
 class HateSpeechDataset(Dataset):
     def __init__(self, texts, labels, tokenizer, max_len=128):
@@ -54,6 +73,8 @@ class HateSpeechDataset(Dataset):
         }
 
 
+# ── Train / eval loops ────────────────────────────────────────────────────────
+
 def train_epoch(model, loader, optimizer, scheduler, class_weights, scaler=None):
     model.train()
     total_loss = 0
@@ -66,16 +87,16 @@ def train_epoch(model, loader, optimizer, scheduler, class_weights, scaler=None)
         if scaler:
             from torch.cuda.amp import autocast
             with autocast():
-                out  = model(input_ids=input_ids, attention_mask=attention_mask)
-                loss = F.cross_entropy(out.logits, labels, weight=class_weights)
+                logits = model(input_ids, attention_mask)
+                loss   = F.cross_entropy(logits, labels, weight=class_weights)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             scaler.step(optimizer)
             scaler.update()
         else:
-            out  = model(input_ids=input_ids, attention_mask=attention_mask)
-            loss = F.cross_entropy(out.logits, labels, weight=class_weights)
+            logits = model(input_ids, attention_mask)
+            loss   = F.cross_entropy(logits, labels, weight=class_weights)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
@@ -90,14 +111,16 @@ def eval_epoch(model, loader):
     preds, targets = [], []
     with torch.no_grad():
         for batch in tqdm(loader, desc="  Evaluating"):
-            out = model(
-                input_ids=batch['input_ids'].to(DEVICE),
-                attention_mask=batch['attention_mask'].to(DEVICE),
+            logits = model(
+                batch['input_ids'].to(DEVICE),
+                batch['attention_mask'].to(DEVICE),
             )
-            preds.extend(out.logits.argmax(dim=-1).cpu().tolist())
+            preds.extend(logits.argmax(dim=-1).cpu().tolist())
             targets.extend(batch['labels'].tolist())
     return f1_score(targets, preds, average='macro'), preds, targets
 
+
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main(args):
     print(f"\n[ByT5 Baseline] noise_level={args.noise_level} | device={DEVICE} | fp16={args.fp16}")
@@ -119,17 +142,15 @@ def main(args):
 
     print(f"  Train: {len(train_df):,} | Val: {len(val_df):,} | Test: {len(test_df):,}")
 
-    # Class weights to handle 73/27 imbalance
+    # Weighted CE for 73/27 imbalance
     cw = compute_class_weight('balanced', classes=np.array([0, 1]),
                               y=train_df['label'].values)
     class_weights = torch.tensor(cw, dtype=torch.float).to(DEVICE)
-    print(f"  Class weights: {cw.round(3)}")
+    print(f"  Class weights: [{cw[0]:.3f}, {cw[1]:.3f}]")
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    model     = T5ForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2).to(DEVICE)
-
-    # Memory efficiency — essential for ByT5 on long byte sequences
-    model.gradient_checkpointing_enable()
+    model     = ByT5Classifier(num_labels=2).to(DEVICE)
+    model.encoder.gradient_checkpointing_enable()
 
     train_ds = HateSpeechDataset(train_df['text'].tolist(), train_df['label'].tolist(), tokenizer)
     val_ds   = HateSpeechDataset(val_df['text'].tolist(),   val_df['label'].tolist(),   tokenizer)
@@ -149,8 +170,8 @@ def main(args):
         from torch.cuda.amp import GradScaler
         scaler = GradScaler()
 
-    best_val_f1  = 0
-    ckpt_path    = f"{CHECKPOINT_DIR}/best_{args.noise_level}"
+    best_val_f1 = 0
+    ckpt_path   = f"{CHECKPOINT_DIR}/best_{args.noise_level}.pt"
 
     for epoch in range(args.epochs):
         print(f"\nEpoch {epoch+1}/{args.epochs}")
@@ -160,24 +181,23 @@ def main(args):
 
         if val_f1 > best_val_f1:
             best_val_f1 = val_f1
-            model.save_pretrained(ckpt_path)
-            tokenizer.save_pretrained(ckpt_path)
+            torch.save(model.state_dict(), ckpt_path)
             print(f"  -> best saved (Val F1: {best_val_f1:.4f})")
 
     print("\n[INFO] Loading best model for test evaluation...")
-    model = T5ForSequenceClassification.from_pretrained(ckpt_path, num_labels=2).to(DEVICE)
+    model.load_state_dict(torch.load(ckpt_path, map_location=DEVICE))
     test_f1, test_preds, test_targets = eval_epoch(model, test_loader)
     print(f"\nTest F1 (macro): {test_f1:.4f}")
     print(classification_report(test_targets, test_preds, target_names=['Non-hate', 'Hate']))
 
     result = {
-        'model':          'ByT5',
-        'noise_level':    args.noise_level,
-        'test_f1_macro':  round(test_f1, 4),
-        'best_val_f1':    round(best_val_f1, 4),
-        'epochs':         args.epochs,
-        'lr':             args.lr,
-        'batch_size':     args.batch_size,
+        'model':         'ByT5',
+        'noise_level':   args.noise_level,
+        'test_f1_macro': round(test_f1, 4),
+        'best_val_f1':   round(best_val_f1, 4),
+        'epochs':        args.epochs,
+        'lr':            args.lr,
+        'batch_size':    args.batch_size,
     }
     out_path = f"{RESULTS_DIR}/byt5_{args.noise_level}.json"
     with open(out_path, 'w') as f:
