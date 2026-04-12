@@ -25,12 +25,14 @@ Arguments:
 import os
 import json
 import argparse
+import numpy as np
 import torch
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, get_linear_schedule_with_warmup
 from torch.optim import AdamW
 from sklearn.metrics import f1_score, classification_report
+from sklearn.utils.class_weight import compute_class_weight
 from tqdm import tqdm
 
 import sys
@@ -172,7 +174,7 @@ def load_data(noise_level):
     return clean_train, noisy_train, val_df, test_df
 
 
-def train_epoch(model, loader, optimizer, scheduler, device,
+def train_epoch(model, loader, optimizer, scheduler, device, class_weights,
                 scaler=None, current_step=0, total_steps=1):
     model.train()
     total_loss = total_ce = total_pwnic = total_adv = total_aux = 0
@@ -193,11 +195,12 @@ def train_epoch(model, loader, optimizer, scheduler, device,
             noisy_attention_mask=batch['noisy_attention_mask'].to(device),
             phi=batch['phi'].to(device),
             noise_level_labels=batch['noise_level_labels'].to(device),
+            class_weights=class_weights,
         )
 
         if scaler:
-            from torch.amp import autocast
-            with autocast('cuda'):
+            from torch.cuda.amp import autocast
+            with autocast():
                 out = model(**kwargs)
             scaler.scale(out['loss']).backward()
             scaler.unscale_(optimizer)
@@ -250,6 +253,12 @@ def train_noise_level(args, noise_level, device):
     tokenizer = AutoTokenizer.from_pretrained(args.encoder)
     max_len   = 128 if 'byt5' in args.encoder.lower() else 128
 
+    # Class weights for 73/27 imbalance
+    cw = compute_class_weight('balanced', classes=np.array([0, 1]),
+                              y=clean_train['label'].values)
+    class_weights = torch.tensor(cw, dtype=torch.float).to(device)
+    print(f"  Class weights: [{cw[0]:.3f}, {cw[1]:.3f}]")
+
     train_ds = NoiseBridgeDataset(clean_train, noisy_train, tokenizer, max_len)
     val_ds   = EvalDataset(val_df['text'].tolist(), val_df['label'].tolist(), tokenizer, max_len)
     test_ds  = EvalDataset(test_df['text'].tolist(), test_df['label'].tolist(), tokenizer, max_len)
@@ -282,8 +291,8 @@ def train_noise_level(args, noise_level, device):
 
     scaler = None
     if args.fp16:
-        from torch.amp import GradScaler
-        scaler = GradScaler('cuda')
+        from torch.cuda.amp import GradScaler
+        scaler = GradScaler()
 
     ckpt_path    = f"{CKPT_DIR}/{run_name}.pt"
     best_val_f1  = 0.0
@@ -292,7 +301,7 @@ def train_noise_level(args, noise_level, device):
 
     for epoch in range(args.epochs):
         loss, ce, pwnic, adv, aux, current_step = train_epoch(
-            model, train_loader, optimizer, scheduler, device,
+            model, train_loader, optimizer, scheduler, device, class_weights,
             scaler, current_step, total_steps
         )
         val_f1, _, _ = evaluate(model, val_loader, device)
@@ -339,12 +348,12 @@ def main():
     parser.add_argument('--encoder',    default='google/byt5-small')
     parser.add_argument('--noise',      default='all',
                         choices=['clean', 'low', 'medium', 'high', 'all'])
-    parser.add_argument('--alpha',      type=float, default=0.5)
+    parser.add_argument('--alpha',      type=float, default=0.15)
     parser.add_argument('--beta',       type=float, default=0.3)
     parser.add_argument('--gamma',      type=float, default=0.1)
     parser.add_argument('--lambda_max', type=float, default=1.0)
     parser.add_argument('--epochs',     type=int,   default=5)
-    parser.add_argument('--batch_size', type=int,   default=8)
+    parser.add_argument('--batch_size', type=int,   default=4)
     parser.add_argument('--lr',         type=float, default=3e-5)
     parser.add_argument('--fp16',       action='store_true')
     args = parser.parse_args()

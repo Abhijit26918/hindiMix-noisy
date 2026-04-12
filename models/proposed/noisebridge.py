@@ -307,6 +307,7 @@ class NoiseBridge(nn.Module):
         noisy_attention_mask:  torch.Tensor = None,
         phi:                   torch.Tensor = None,
         noise_level_labels:    torch.Tensor = None,
+        class_weights:         torch.Tensor = None,
     ) -> dict:
 
         # ── 1. Encode clean ──────────────────────────────────────
@@ -314,7 +315,7 @@ class NoiseBridge(nn.Module):
 
         # ── 2. Classification (hate / non-hate) ──────────────────
         logits  = self.classifier(self.dropout(z_clean))
-        loss_ce = F.cross_entropy(logits, labels) if labels is not None else None
+        loss_ce = F.cross_entropy(logits, labels, weight=class_weights) if labels is not None else None
 
         total_loss  = loss_ce
         loss_pwnic  = None
