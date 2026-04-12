@@ -11,7 +11,9 @@ Run: python models/baselines/byt5_trainer.py --noise_level clean
 import os
 import argparse
 import json
+import numpy as np
 import torch
+import torch.nn.functional as F
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 from transformers import (
@@ -21,6 +23,7 @@ from transformers import (
 )
 from torch.optim import AdamW
 from sklearn.metrics import f1_score, classification_report
+from sklearn.utils.class_weight import compute_class_weight
 from tqdm import tqdm
 
 MODEL_NAME     = "google/byt5-small"
@@ -51,32 +54,34 @@ class HateSpeechDataset(Dataset):
         }
 
 
-def train_epoch(model, loader, optimizer, scheduler, scaler=None):
+def train_epoch(model, loader, optimizer, scheduler, class_weights, scaler=None):
     model.train()
     total_loss = 0
     for batch in tqdm(loader, desc="  Training"):
         optimizer.zero_grad()
-        kwargs = dict(
-            input_ids=batch['input_ids'].to(DEVICE),
-            attention_mask=batch['attention_mask'].to(DEVICE),
-            labels=batch['labels'].to(DEVICE),
-        )
+        input_ids      = batch['input_ids'].to(DEVICE)
+        attention_mask = batch['attention_mask'].to(DEVICE)
+        labels         = batch['labels'].to(DEVICE)
+
         if scaler:
-            from torch.amp import autocast
-            with autocast('cuda'):
-                out = model(**kwargs)
-            scaler.scale(out.loss).backward()
+            from torch.cuda.amp import autocast
+            with autocast():
+                out  = model(input_ids=input_ids, attention_mask=attention_mask)
+                loss = F.cross_entropy(out.logits, labels, weight=class_weights)
+            scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             scaler.step(optimizer)
             scaler.update()
         else:
-            out = model(**kwargs)
-            out.loss.backward()
+            out  = model(input_ids=input_ids, attention_mask=attention_mask)
+            loss = F.cross_entropy(out.logits, labels, weight=class_weights)
+            loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
+
         scheduler.step()
-        total_loss += out.loss.item()
+        total_loss += loss.item()
     return total_loss / len(loader)
 
 
@@ -114,6 +119,12 @@ def main(args):
 
     print(f"  Train: {len(train_df):,} | Val: {len(val_df):,} | Test: {len(test_df):,}")
 
+    # Class weights to handle 73/27 imbalance
+    cw = compute_class_weight('balanced', classes=np.array([0, 1]),
+                              y=train_df['label'].values)
+    class_weights = torch.tensor(cw, dtype=torch.float).to(DEVICE)
+    print(f"  Class weights: {cw.round(3)}")
+
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model     = T5ForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2).to(DEVICE)
 
@@ -135,15 +146,15 @@ def main(args):
 
     scaler = None
     if args.fp16:
-        from torch.amp import GradScaler
-        scaler = GradScaler('cuda')
+        from torch.cuda.amp import GradScaler
+        scaler = GradScaler()
 
     best_val_f1  = 0
     ckpt_path    = f"{CHECKPOINT_DIR}/best_{args.noise_level}"
 
     for epoch in range(args.epochs):
         print(f"\nEpoch {epoch+1}/{args.epochs}")
-        loss  = train_epoch(model, train_loader, optimizer, scheduler, scaler)
+        loss  = train_epoch(model, train_loader, optimizer, scheduler, class_weights, scaler)
         val_f1, _, _ = eval_epoch(model, val_loader)
         print(f"  Loss: {loss:.4f} | Val F1: {val_f1:.4f}")
 
