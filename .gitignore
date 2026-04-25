@@ -18,16 +18,9 @@ env/
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Data (large files — use Git LFS or DVC instead)
-data/raw/*.csv
-data/raw/*.json
-data/raw/*.txt
+# Data (large files — UCB file tracked via Git LFS)
 data/raw/*.zip
 data/raw/*.tar.gz
-
-# But track small samples and metadata
-!data/raw/sample_*.csv
-!data/raw/*.md
 
 # Model checkpoints (large)
 models/**/*.bin
