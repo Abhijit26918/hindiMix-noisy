@@ -1,0 +1,16 @@
+{
+  "model": "noisebridge_xlm_roberta_base_all_s42",
+  "encoder": "xlm-roberta-base",
+  "train_noise": "all",
+  "test_noise": "high",
+  "seed": 42,
+  "test_f1_macro": 0.8329,
+  "best_val_f1": 0.8502,
+  "alpha": 0.15,
+  "gamma": 0.2,
+  "enable_aux": true,
+  "epochs": 5,
+  "lr": 3e-05,
+  "batch_size": 16,
+  "max_len": 128
+}

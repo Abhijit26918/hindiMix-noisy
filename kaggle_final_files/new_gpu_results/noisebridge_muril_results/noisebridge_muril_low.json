@@ -1,0 +1,14 @@
+{
+  "model": "noisebridge_muril_low",
+  "encoder": "google/muril-base-cased",
+  "noise_level": "low",
+  "test_f1_macro": 0.8253,
+  "best_val_f1": 0.8347,
+  "alpha": 0.15,
+  "beta": 0.3,
+  "gamma": 0.1,
+  "lambda_max": 0.5,
+  "epochs": 5,
+  "lr": 3e-05,
+  "batch_size": 8
+}

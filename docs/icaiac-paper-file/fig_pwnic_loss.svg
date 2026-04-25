@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="250mm" viewBox="0 0 680 720" style="background:white;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- Section label -->
+<text x="340" y="22" text-anchor="middle" font-size="11" letter-spacing="1.2" fill="#888780" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">PROJECTION SPACE  (via πξ MLP head)</text>
+
+<!-- Pair A label -->
+<text x="180" y="42" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">Pair A — high distortion</text>
+
+<!-- Clean A -->
+<rect x="56" y="52" width="248" height="50" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+<text x="180" y="72" text-anchor="middle" font-size="13" font-weight="bold" fill="#085041" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">pᶜ  "madarchod bhai"</text>
+<text x="180" y="89" text-anchor="middle" font-size="11" fill="#0F6E56" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">clean projection</text>
+
+<!-- Strong pull arrows A -->
+<line x1="180" y1="102" x2="180" y2="148" stroke="#0F6E56" stroke-width="4" marker-end="url(#arrow)" opacity="0.9"/>
+<line x1="180" y1="168" x2="180" y2="122" stroke="#993C1D" stroke-width="4" marker-end="url(#arrow)" opacity="0.9"/>
+
+<!-- phi badge A -->
+<rect x="202" y="116" width="100" height="26" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+<text x="252" y="129" text-anchor="middle" font-size="12" font-weight="bold" fill="#412402" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">φ = 0.056</text>
+<text x="252" y="152" text-anchor="middle" font-size="10" fill="#5F5E5A" font-weight="bold" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">strong pull</text>
+
+<!-- Noisy A -->
+<rect x="56" y="168" width="248" height="50" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+<text x="180" y="188" text-anchor="middle" font-size="13" font-weight="bold" fill="#4A1B0C" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">p̃  "madrachd bha1"</text>
+<text x="180" y="205" text-anchor="middle" font-size="11" fill="#993C1D" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">noisy projection</text>
+
+<!-- Pair B label -->
+<text x="500" y="42" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">Pair B — low distortion</text>
+
+<!-- Clean B -->
+<rect x="376" y="52" width="248" height="50" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+<text x="500" y="72" text-anchor="middle" font-size="13" font-weight="bold" fill="#085041" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">pᶜ  "hate speech"</text>
+<text x="500" y="89" text-anchor="middle" font-size="11" fill="#0F6E56" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">clean projection</text>
+
+<!-- Weak pull arrows B -->
+<line x1="500" y1="102" x2="500" y2="136" stroke="#0F6E56" stroke-width="1.4" marker-end="url(#arrow)" opacity="0.55"/>
+<line x1="500" y1="156" x2="500" y2="122" stroke="#993C1D" stroke-width="1.4" marker-end="url(#arrow)" opacity="0.55"/>
+
+<!-- phi badge B -->
+<rect x="522" y="116" width="100" height="26" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+<text x="572" y="129" text-anchor="middle" font-size="12" font-weight="bold" fill="#2C2C2A" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">φ = 0.012</text>
+<text x="572" y="152" text-anchor="middle" font-size="10" fill="#5F5E5A" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">weak pull</text>
+
+<!-- Noisy B -->
+<rect x="376" y="156" width="248" height="50" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+<text x="500" y="176" text-anchor="middle" font-size="13" font-weight="bold" fill="#4A1B0C" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">p̃  "hat3 sp3ech"</text>
+<text x="500" y="193" text-anchor="middle" font-size="11" fill="#993C1D" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">noisy projection</text>
+
+<!-- Negative push arrows (in gap between pairs) -->
+<line x1="304" y1="77" x2="346" y2="77" stroke="#A32D2D" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrow)" opacity="0.7"/>
+<line x1="376" y1="85" x2="334" y2="85" stroke="#A32D2D" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrow)" opacity="0.7"/>
+<text x="340" y="70" text-anchor="middle" font-size="10" fill="#791F1F" font-weight="bold" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">push apart</text>
+<text x="340" y="93" text-anchor="middle" font-size="10" fill="#888780" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">(negatives)</text>
+
+<!-- Divider -->
+<line x1="56" y1="236" x2="624" y2="236" stroke="#888780" stroke-width="0.5" opacity="0.3"/>
+
+<!-- Objective label -->
+<text x="340" y="256" text-anchor="middle" font-size="11" letter-spacing="1.2" fill="#888780" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">OBJECTIVE</text>
+
+<!-- Formula box -->
+<rect x="56" y="264" width="568" height="96" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+<text x="340" y="290" text-anchor="middle" font-size="13" font-weight="bold" fill="#26215C" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">ℒ_PWNIC = −(1/Σφᵢ) · Σᵢ φᵢ · log</text>
+<text x="340" y="312" text-anchor="middle" font-size="11" fill="#534AB7" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">exp( sim(pᶜᵢ, p̃ᵢ) / τ )</text>
+<text x="340" y="328" text-anchor="middle" font-size="11" fill="#534AB7" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">——————————————————————————————</text>
+<text x="340" y="346" text-anchor="middle" font-size="11" fill="#534AB7" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">Σ_{k≠i}  exp( sim(pᶜᵢ, p_k) / τ )     τ = 0.15</text>
+
+<!-- Divider -->
+<line x1="56" y1="380" x2="624" y2="380" stroke="#888780" stroke-width="0.5" opacity="0.3"/>
+
+<!-- Key properties label -->
+<text x="340" y="400" text-anchor="middle" font-size="11" letter-spacing="1.2" fill="#888780" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">KEY PROPERTIES</text>
+
+<!-- Property 1 -->
+<rect x="56" y="410" width="268" height="68" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+<text x="190" y="432" text-anchor="middle" font-size="13" font-weight="bold" fill="#085041" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">φ = 0  (identical texts)</text>
+<text x="190" y="452" text-anchor="middle" font-size="11" fill="#0F6E56" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">pair contributes zero loss</text>
+<text x="190" y="468" text-anchor="middle" font-size="11" fill="#0F6E56" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">no wasted gradient</text>
+
+<!-- Property 2 -->
+<rect x="356" y="410" width="268" height="68" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+<text x="490" y="432" text-anchor="middle" font-size="13" font-weight="bold" fill="#4A1B0C" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">High φ (severe ASR noise)</text>
+<text x="490" y="452" text-anchor="middle" font-size="11" fill="#993C1D" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">gradient proportionally stronger</text>
+<text x="490" y="468" text-anchor="middle" font-size="11" fill="#993C1D" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">more alignment pressure</text>
+
+<!-- Property 3 -->
+<rect x="56" y="498" width="568" height="48" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+<text x="340" y="516" text-anchor="middle" font-size="13" font-weight="bold" fill="#412402" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">Projection head πξ isolates contrastive gradients from classifier</text>
+<text x="340" y="533" text-anchor="middle" font-size="11" fill="#854F0B" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">following SimCLR (Chen et al., 2020)</text>
+
+<!-- Divider -->
+<line x1="56" y1="566" x2="624" y2="566" stroke="#888780" stroke-width="0.5" opacity="0.3"/>
+
+<!-- Empirical phi label -->
+<text x="340" y="586" text-anchor="middle" font-size="11" letter-spacing="1.2" fill="#888780" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">EMPIRICAL φ — HindiMix-Noisy</text>
+
+<!-- Low -->
+<rect x="56" y="596" width="174" height="56" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+<text x="143" y="618" text-anchor="middle" font-size="13" font-weight="bold" fill="#042C53" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">Low noise</text>
+<text x="143" y="638" text-anchor="middle" font-size="11" fill="#185FA5" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">mean φ = 0.025</text>
+
+<!-- Medium -->
+<rect x="253" y="596" width="174" height="56" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+<text x="340" y="618" text-anchor="middle" font-size="13" font-weight="bold" fill="#412402" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">Medium noise</text>
+<text x="340" y="638" text-anchor="middle" font-size="11" fill="#854F0B" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">mean φ = 0.039</text>
+
+<!-- High -->
+<rect x="450" y="596" width="174" height="56" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+<text x="537" y="618" text-anchor="middle" font-size="13" font-weight="bold" fill="#4A1B0C" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">High noise</text>
+<text x="537" y="638" text-anchor="middle" font-size="11" fill="#993C1D" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">mean φ = 0.056</text>
+
+<text x="340" y="678" text-anchor="middle" font-size="11" fill="#888780" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">Monotonic increase confirms φ correctly tracks ASR distortion severity</text>
+</svg>

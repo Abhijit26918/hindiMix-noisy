@@ -1,0 +1,17 @@
+{
+  "model": "ablation_gate_plus_pwnic_s42",
+  "encoder": "xlm-roberta-base",
+  "ablation": "gate_plus_pwnic",
+  "train_noise": "all",
+  "test_noise": "medium",
+  "seed": 42,
+  "test_f1_macro": 0.8394,
+  "best_val_f1": 0.847,
+  "alpha": 0.15,
+  "gamma": 0.0,
+  "enable_aux": false,
+  "epochs": 5,
+  "lr": 3e-05,
+  "batch_size": 16,
+  "max_len": 128
+}

@@ -1,0 +1,16 @@
+{
+  "model": "noisebridge_bert_base_multilingual_cased_all_s42",
+  "encoder": "bert-base-multilingual-cased",
+  "train_noise": "all",
+  "test_noise": "low",
+  "seed": 42,
+  "test_f1_macro": 0.8427,
+  "best_val_f1": 0.8451,
+  "alpha": 0.15,
+  "gamma": 0.2,
+  "enable_aux": true,
+  "epochs": 5,
+  "lr": 3e-05,
+  "batch_size": 16,
+  "max_len": 128
+}

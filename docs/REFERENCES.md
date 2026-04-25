@@ -135,6 +135,47 @@ Format: [Short tag] — used for quick reference in paper writing.
 
 ---
 
+---
+Data Agumentation references:
+
+🔹 A. Data Augmentation in NLP (Core justification)
+[EDA: Easy Data Augmentation Techniques for Boosting Performance on Text Classification Tasks]
+👉 Shows simple transformations (swap, delete, replace) improve robustness
+[Text Data Augmentation for Deep Learning]
+👉 Survey paper — VERY useful to justify your whole approach
+
+🔹 B. Backtranslation / Paraphrasing
+[Improving Neural Machine Translation Models with Monolingual Data]
+👉 Introduced backtranslation (widely accepted)
+[Unsupervised Data Augmentation for Consistency Training]
+👉 Shows augmentation improves robustness
+
+🔹 C. Noise Injection / Robustness
+[On the Robustness of NLP Models to Input Perturbations]
+👉 Character noise + perturbations (exactly what you do)
+[TextFlint: Unified Multilingual Robustness Evaluation Toolkit]
+👉 Supports noise-based robustness evaluation
+
+🔹 D. Code-Mixing / Hinglish
+[Sentiment Analysis of Code-Mixed Languages leveraging Resource Rich Languages]
+[A Benchmark Dataset for Code-Mixed Hinglish Text Classification]
+👉 These justify:
+Hinglish transformations
+code-mixed processing
+
+🔹 E. Class Imbalance Handling
+[SMOTE: Synthetic Minority Over-sampling Technique]
+👉 Even though it's tabular:
+concept of oversampling minority class = exactly what you do
+🧠 2. How YOUR method maps to literature
+Your Method   	           Paper Support
+Character noise	           Belinkov & Bisk
+Hinglish transformation	   Code-mixing papers
+Oversampling hate	       SMOTE
+Synthetic augmentation	   EDA, Feng survey
+Robustness training	       UDA, TextFlint
+
+
 ## To Find / Verify
 
 - [ ] Any paper doing contrastive learning for noisy Hinglish — if none found, strong novelty claim
